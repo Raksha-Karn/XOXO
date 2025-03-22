@@ -1,0 +1,16 @@
+<nav class="nav-bar p-4 bg-slate-800 text-white">
+    <ul class="ul-links flex flex-row justify-between">
+        <div class="nav-fix">
+            <li class="p-2 text-2xl"><a href="{% url 'index' %}">Home</a></li>
+        </div>
+        <div class="nav-right flex flex-row items-center justify-center gap-4">
+            {% if user.is_authenticated %}
+                <li class="p-2 text-2xl"><a href="{% url 'logout' %}">Logout</a></li>
+            {% else %}
+                <li class="p-2 text-2xl"><a href="{% url 'login' %}">Login</a></li>
+                <li class="p-2 text-2xl"><a href="{% url 'register' %}">Register</a></li>
+            {% endif %}
+        </div>
+        
+    </ul>
+</nav>
