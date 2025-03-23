@@ -27,7 +27,6 @@ A real-time tic-tac-toe game built with Django and WebSockets that allows users 
 -   **Game Creation**: Users can create new game rooms
 -   **Game Discovery**: Browse and join available games
 -   **Real-time Gameplay**: WebSockets-powered real-time updates
--   **Game History**: View past game results and statistics
 -   **Responsive Design**: Play on any device
 
 ## Installation
