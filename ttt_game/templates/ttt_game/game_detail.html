@@ -1,56 +1,233 @@
 {% extends "ttt_game/base.html" %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2>Tic Tac Toe Game</h2>
-    
-    <div class="row">
-        <div class="col-md-8 mx-auto">
-            <div class="game-info mb-4">
-                <div id="game-status" class="alert alert-info">
-                    {% if game.status == 'waiting' %}
-                        Waiting for another player to join...
-                    {% elif game.status == 'active' %}
-                        Game is active. Current turn: <span id="current-player">{{ game.current_player }}</span>
-                    {% elif game.status == 'completed' %}
-                        Game over! Winner: {{ game.winner }}
-                    {% elif game.status == 'draw' %}
-                        Game ended in a draw!
-                    {% endif %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card game-card mb-4">
+                <div class="card-header text-center py-3">
+                    <h2 class="mb-0">Tic Tac Toe Battle</h2>
                 </div>
                 
-                <div class="players mb-3">
-                    <p>Player X: {% if game.player_x %}{{ game.player_x.username }}{% else %}Waiting...{% endif %}</p>
-                    <p>Player O: {% if game.player_o %}{{ game.player_o.username }}{% else %}Waiting...{% endif %}</p>
+                <div class="card-body">
+                    <!-- Game status banner -->
+                    <div id="game-status" class="alert mb-4 text-center">
+                        {% if game.status == 'waiting' %}
+                            <div class="d-flex align-items-center justify-content-center">
+                                <div class="spinner-border me-2" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <span>Waiting for another player to join...</span>
+                            </div>
+                        {% elif game.status == 'active' %}
+                            Game is active. Current turn: 
+                            <span id="current-player" class="fw-bold {% if game.current_player == 'X' %}player-x{% else %}player-o{% endif %}">
+                                {{ game.current_player }}
+                            </span>
+                        {% elif game.status == 'completed' %}
+                            <span class="fw-bold">Game over! Winner: 
+                                <span class="{% if game.winner == 'X' %}player-x{% else %}player-o{% endif %}">{{ game.winner }}</span>
+                            </span>
+                        {% elif game.status == 'draw' %}
+                            <span class="fw-bold">Game ended in a draw!</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Player cards -->
+                    <div class="players-container row mb-4">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <div class="player-card player-x-card p-3 text-center">
+                                <div class="player-symbol player-x mb-2">X</div>
+                                <div class="player-name">
+                                    {% if game.player_x %}
+                                        <span class="fw-bold">{{ game.player_x.username }}</span>
+                                    {% else %}
+                                        <span class="waiting-text">Waiting...</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="player-card player-o-card p-3 text-center">
+                                <div class="player-symbol player-o mb-2">O</div>
+                                <div class="player-name">
+                                    {% if game.player_o %}
+                                        <span class="fw-bold">{{ game.player_o.username }}</span>
+                                    {% else %}
+                                        <span class="waiting-text">Waiting...</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Game board -->
+                    <div class="game-board-container mb-4">
+                        <div class="game-board mx-auto">
+                            <table>
+                                <tbody>
+                                    {% for row in board %}
+                                    <tr>
+                                        {% for cell in row %}
+                                        <td class="game-cell" data-row="{{ forloop.parentloop.counter0 }}" data-col="{{ forloop.counter0 }}">
+                                            {% if cell == 'X' %}
+                                                <span class="player-x">{{ cell }}</span>
+                                            {% elif cell == 'O' %}
+                                                <span class="player-o">{{ cell }}</span>
+                                            {% endif %}
+                                        </td>
+                                        {% endfor %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Action buttons -->
+                    <div class="actions text-center">
+                        <a href="{% url 'game_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Games
+                        </a>
+                        
+                        {% if game.status == 'completed' or game.status == 'draw' %}
+                        <a href="{% url 'create_game' %}?public=true" class="btn btn-primary ms-2">
+                            <i class="bi bi-plus-circle me-2"></i>New Public Game
+                        </a>
+                        {% endif %}
+                    </div>
                 </div>
-            </div>
-            
-            <div class="game-board mb-4">
-                <table class="table-bordered mx-auto">
-                    <tbody>
-                        {% for row in board %}
-                        <tr>
-                            {% for cell in row %}
-                            <td class="game-cell" data-row="{{ forloop.parentloop.counter0 }}" data-col="{{ forloop.counter0 }}">
-                                {{ cell }}
-                            </td>
-                            {% endfor %}
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="mt-3 text-center">
-                <a href="{% url 'game_list' %}" class="btn btn-secondary">Back to Games</a>
             </div>
         </div>
     </div>
 </div>
 
 <style>
+    /* Enhanced Game Detail Styles */
+    .game-card {
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        background: white;
+        background-image: linear-gradient(to bottom, #ffffff, #f8f9fa);
+    }
+    
+    .card-header {
+        background-color: var(--primary);
+        color: white;
+        border-bottom: none;
+        position: relative;
+    }
+    
+    .card-header:after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 0;
+        width: 100%;
+        height: 10px;
+        background: linear-gradient(135deg, transparent 33%, var(--primary) 33%, var(--primary) 66%, transparent 66%);
+        background-size: 20px 10px;
+    }
+    
+    #game-status {
+        border-radius: 12px;
+        padding: 15px;
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+    
+    #game-status.alert-info {
+        background-color: #e0f7fa;
+        color: #006064;
+        border-left: 4px solid var(--accent);
+    }
+    
+    #game-status.alert-primary {
+        background-color: #e3f2fd;
+        color: #0d47a1;
+        border-left: 4px solid var(--secondary);
+    }
+    
+    #game-status.alert-success {
+        background-color: #e8f5e9;
+        color: #1b5e20;
+        border-left: 4px solid var(--success);
+    }
+    
+    #game-status.alert-warning {
+        background-color: #fff8e1;
+        color: #ff6f00;
+        border-left: 4px solid var(--warning);
+    }
+    
+    .player-card {
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .player-x-card {
+        background-color: rgba(230, 57, 70, 0.1);
+        border: 2px solid var(--primary);
+    }
+    
+    .player-o-card {
+        background-color: rgba(69, 123, 157, 0.1);
+        border: 2px solid var(--secondary);
+    }
+    
+    .player-symbol {
+        font-size: 2.5rem;
+        font-weight: bold;
+        line-height: 1;
+        margin-bottom: 5px;
+    }
+    
+    .player-name {
+        font-size: 1.1rem;
+    }
+    
+    .waiting-text {
+        opacity: 0.7;
+        font-style: italic;
+    }
+    
+    .game-board-container {
+        display: flex;
+        justify-content: center;
+    }
+    
+    .game-board {
+        position: relative;
+        background: var(--light);
+        padding: 15px;
+        border-radius: 16px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+    
+    .game-board:before {
+        content: '';
+        position: absolute;
+        top: -5px;
+        left: -5px;
+        right: -5px;
+        bottom: -5px;
+        background: linear-gradient(45deg, var(--primary), var(--secondary));
+        z-index: -1;
+        border-radius: 20px;
+        opacity: 0.6;
+    }
+    
     .game-board table {
-        border-collapse: collapse;
+        border-collapse: separate;
+        border-spacing: 8px;
+        margin: 0 auto;
     }
     
     .game-cell {
@@ -58,10 +235,110 @@
         height: 100px;
         text-align: center;
         vertical-align: middle;
-        font-size: 3em;
+        font-size: 3.5em;
         font-weight: bold;
         cursor: pointer;
-        border: 2px solid #333;
+        border-radius: 12px;
+        background-color: white;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .game-cell:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+    
+    .game-cell:empty:hover {
+        background-color: rgba(230, 57, 70, 0.1);
+    }
+    
+    .game-cell:empty:after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transform: translateX(-100%);
+        transition: transform 0.6s ease;
+    }
+    
+    .game-cell:empty:hover:after {
+        transform: translateX(100%);
+    }
+    
+    .player-x {
+        color: var(--primary);
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        animation: pop-in 0.3s ease-out;
+    }
+    
+    .player-o {
+        color: var(--secondary);
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        animation: pop-in 0.3s ease-out;
+    }
+    
+    @keyframes pop-in {
+        0% { transform: scale(0.5); opacity: 0; }
+        80% { transform: scale(1.2); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    
+    .btn {
+        border-radius: 50px;
+        padding: 10px 24px;
+        font-weight: 500;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(45deg, var(--primary), var(--primary-light));
+        border: none;
+    }
+    
+    .btn-secondary {
+        background: linear-gradient(45deg, var(--secondary), #6897b7);
+        border: none;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .game-cell {
+            width: 85px;
+            height: 85px;
+            font-size: 3em;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .game-cell {
+            width: 70px;
+            height: 70px;
+            font-size: 2.5em;
+        }
+        
+        .player-symbol {
+            font-size: 2rem;
+        }
+    }
+    
+    @media (max-width: 400px) {
+        .game-cell {
+            width: 60px;
+            height: 60px;
+            font-size: 2em;
+        }
     }
 </style>
 
@@ -71,6 +348,9 @@
         const gameSocket = new WebSocket(
             'ws://' + window.location.host + '/ws/game/' + gameId + '/'
         );
+        
+        // Set initial game status alert class
+        updateStatusAlertClass();
         
         gameSocket.onopen = function(e) {
             console.log('WebSocket connection established');
@@ -83,12 +363,13 @@
             if (data.type === 'game_state' || data.type === 'game_update') {
                 updateGameBoard(data.state);
             } else if (data.type === 'error') {
-                alert(data.message);
+                showErrorMessage(data.message);
             }
         };
         
         gameSocket.onclose = function(e) {
             console.error('Game socket closed unexpectedly');
+            showErrorMessage('Connection lost. Please refresh the page.');
         };
         
         gameSocket.onerror = function(e) {
@@ -110,7 +391,15 @@
                     for (let col = 0; col < 3; col++) {
                         const cell = document.querySelector(`.game-cell[data-row="${row}"][data-col="${col}"]`);
                         if (cell) {
-                            cell.textContent = board[row][col];
+                            // Clear the cell first
+                            cell.innerHTML = '';
+                            
+                            // Add the proper player mark with styling
+                            if (board[row][col] === 'X') {
+                                cell.innerHTML = '<span class="player-x">X</span>';
+                            } else if (board[row][col] === 'O') {
+                                cell.innerHTML = '<span class="player-o">O</span>';
+                            }
                         } else {
                             console.error(`Cell not found for row ${row}, col ${col}`);
                         }
@@ -124,34 +413,109 @@
             const statusElement = document.getElementById('game-status');
             
             if (gameState.status === 'waiting') {
-                statusText = 'Waiting for another player to join...';
-                statusElement.className = 'alert alert-info';
+                statusText = `
+                    <div class="d-flex align-items-center justify-content-center">
+                        <div class="spinner-border me-2" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <span>Waiting for another player to join...</span>
+                    </div>
+                `;
+                statusElement.className = 'alert alert-info mb-4 text-center';
             } else if (gameState.status === 'active') {
-                statusText = `Game is active. Current turn: ${gameState.current_player}`;
-                statusElement.className = 'alert alert-primary';
+                const playerClass = gameState.current_player === 'X' ? 'player-x' : 'player-o';
+                statusText = `Game is active. Current turn: <span id="current-player" class="fw-bold ${playerClass}">${gameState.current_player}</span>`;
+                statusElement.className = 'alert alert-primary mb-4 text-center';
             } else if (gameState.status === 'completed') {
-                statusText = `Game over! Winner: ${gameState.winner}`;
-                statusElement.className = 'alert alert-success';
+                const winnerClass = gameState.winner === 'X' ? 'player-x' : 'player-o';
+                statusText = `<span class="fw-bold">Game over! Winner: <span class="${winnerClass}">${gameState.winner}</span></span>`;
+                statusElement.className = 'alert alert-success mb-4 text-center';
+                
+                // Add a replay button
+                if (!document.querySelector('.btn-replay')) {
+                    const actionsDiv = document.querySelector('.actions');
+                    const replayBtn = document.createElement('a');
+                    replayBtn.href = "{% url 'create_game' %}?public=true";
+                    replayBtn.className = 'btn btn-primary ms-2 btn-replay';
+                    replayBtn.innerHTML = '<i class="bi bi-plus-circle me-2"></i>New Public Game';
+                    actionsDiv.appendChild(replayBtn);
+                }
             } else if (gameState.status === 'draw') {
-                statusText = 'Game ended in a draw!';
-                statusElement.className = 'alert alert-warning';
+                statusText = '<span class="fw-bold">Game ended in a draw!</span>';
+                statusElement.className = 'alert alert-warning mb-4 text-center';
+                
+                // Add a replay button
+                if (!document.querySelector('.btn-replay')) {
+                    const actionsDiv = document.querySelector('.actions');
+                    const replayBtn = document.createElement('a');
+                    replayBtn.href = "{% url 'create_game' %}?public=true";
+                    replayBtn.className = 'btn btn-primary ms-2 btn-replay';
+                    replayBtn.innerHTML = '<i class="bi bi-plus-circle me-2"></i>New Public Game';
+                    actionsDiv.appendChild(replayBtn);
+                }
             }
             
             statusElement.innerHTML = statusText;
             
-            const playersElement = document.querySelector('.players');
-            playersElement.innerHTML = `
-                <p>Player X: ${gameState.player_x || 'Waiting...'}</p>
-                <p>Player O: ${gameState.player_o || 'Waiting...'}</p>
-            `;
+            // Update player cards
+            updatePlayerCard('X', gameState.player_x || null);
+            updatePlayerCard('O', gameState.player_o || null);
         }
         
+        function updatePlayerCard(symbol, playerName) {
+            const cardSelector = symbol === 'X' ? '.player-x-card' : '.player-o-card';
+            const nameElement = document.querySelector(`${cardSelector} .player-name`);
+            
+            if (nameElement) {
+                if (playerName) {
+                    nameElement.innerHTML = `<span class="fw-bold">${playerName}</span>`;
+                } else {
+                    nameElement.innerHTML = `<span class="waiting-text">Waiting...</span>`;
+                }
+            }
+        }
+        
+        function updateStatusAlertClass() {
+            const statusElement = document.getElementById('game-status');
+            const statusText = statusElement.textContent.trim();
+            
+            if (statusText.includes('Waiting for another player')) {
+                statusElement.className = 'alert alert-info mb-4 text-center';
+            } else if (statusText.includes('Game is active')) {
+                statusElement.className = 'alert alert-primary mb-4 text-center';
+            } else if (statusText.includes('Game over!')) {
+                statusElement.className = 'alert alert-success mb-4 text-center';
+            } else if (statusText.includes('draw')) {
+                statusElement.className = 'alert alert-warning mb-4 text-center';
+            }
+        }
+        
+        function showErrorMessage(message) {
+            const alertElement = document.createElement('div');
+            alertElement.className = 'alert alert-danger alert-dismissible fade show';
+            alertElement.role = 'alert';
+            alertElement.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            const container = document.querySelector('.container');
+            container.insertBefore(alertElement, container.firstChild);
+            
+            // Auto dismiss after 5 seconds
+            setTimeout(() => {
+                const bsAlert = new bootstrap.Alert(alertElement);
+                bsAlert.close();
+            }, 5000);
+        }
+        
+        // Add click event for game cells
         document.querySelectorAll('.game-cell').forEach(cell => {
             cell.addEventListener('click', function() {
-                console.log('Cell clicked');
                 const row = this.getAttribute('data-row');
                 const col = this.getAttribute('data-col');
                 
+                // Only send move if cell is empty
                 if (!this.textContent.trim()) {
                     console.log(`Sending move: row=${row}, col=${col}`);
                     gameSocket.send(JSON.stringify({
@@ -164,6 +528,37 @@
                 }
             });
         });
+        
+        // Highlight whose turn it is
+        function highlightCurrentPlayer() {
+            const currentPlayer = document.getElementById('current-player');
+            if (currentPlayer) {
+                const playerSymbol = currentPlayer.textContent.trim();
+                const xCard = document.querySelector('.player-x-card');
+                const oCard = document.querySelector('.player-o-card');
+                
+                if (playerSymbol === 'X') {
+                    xCard.style.transform = 'scale(1.05)';
+                    xCard.style.boxShadow = '0 8px 20px rgba(230, 57, 70, 0.3)';
+                    oCard.style.transform = 'scale(1)';
+                    oCard.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.05)';
+                } else if (playerSymbol === 'O') {
+                    oCard.style.transform = 'scale(1.05)';
+                    oCard.style.boxShadow = '0 8px 20px rgba(69, 123, 157, 0.3)';
+                    xCard.style.transform = 'scale(1)';
+                    xCard.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.05)';
+                }
+            }
+        }
+        
+        // Call initially and then every time the game state updates
+        highlightCurrentPlayer();
+        
+        // Add Bootstrap icons
+        const iconLink = document.createElement('link');
+        iconLink.rel = 'stylesheet';
+        iconLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css';
+        document.head.appendChild(iconLink);
     });
 </script>
 {% endblock %}

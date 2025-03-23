@@ -45,7 +45,7 @@ def logout_user(request):
 
 def register_user(request):
     if request.method == 'POST':
-        form = SignUpForm(request.POST or None)
+        form = SignUpForm(request.POST)
         if form.is_valid():
             form.save()
             username = form.cleaned_data['username']
@@ -55,11 +55,10 @@ def register_user(request):
             messages.success(request, "Registration Successful")
             return redirect('index')
         else:
-            messages.error(request, "Something went wrong! Please try again.")
-            return redirect('register')
+            return render(request, "ttt_game/register.html", {'form': form})
     else:
         form = SignUpForm()
-        return render(request, "ttt_game/register.html", {'form': form})
+    return render(request, "ttt_game/register.html", {'form': form})
     
 @login_required
 def game_list(request):

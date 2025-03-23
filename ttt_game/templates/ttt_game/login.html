@@ -1,19 +1,37 @@
 {% extends "ttt_game/base.html" %}
 {% block content %}
-<div class="form flex flex-col justify-center items-center">
-    <h1 class="text-4xl text-center">Login</h1>
-    <form action="{% url 'login' %}" method="post">
-        {% csrf_token %}
-        <div class="form-group mb-4">
-            <label for="username" class="text-xl">Username</label>
-            <input type="text" name="username" class="form-control" id="username" placeholder="Username" required>
+<div class="row justify-content-center py-5">
+    <div class="col-md-6 col-lg-5">
+        <div class="form p-4">
+            <div class="text-center mb-4">
+                <h1 class="h3 fw-bold" style="color: var(--primary);">Login</h1>
+                <p class="text-muted">Sign in to continue to Tic Tac Toe</p>
+            </div>
+            
+            <form action="{% url 'login' %}" method="post">
+                {% csrf_token %}
+                <div class="form-group mb-4">
+                    <label for="username" class="form-label fw-medium">Username</label>
+                    <div class="input-group">
+                       
+                        <input type="text" name="username" class="form-control" id="username" placeholder="Enter your username" required>
+                    </div>
+                </div>
+                <div class="form-group mb-4">
+                    <label for="password" class="form-label fw-medium">Password</label>
+                    <div class="input-group">
+                        
+                        <input type="password" name="password" class="form-control" id="password" placeholder="Enter your password" required>
+                    </div>
+                </div>
+                <div class="d-grid mb-4">
+                    <button type="submit" class="btn btn-primary py-2">Login</button>
+                </div>
+                <div class="text-center">
+                    <p>Don't have an account? <a href="{% url 'register' %}" style="color: var(--primary);">Register now</a></p>
+                </div>
+            </form>
         </div>
-        <div class="form-group mb-4">
-            <label for="password" class="text-xl">Password</label>
-            <input type="password" name="password" class="form-control" id="password" placeholder="Password" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Login</button>
-    </form>
+    </div>
 </div>
-
 {% endblock %}

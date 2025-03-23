@@ -1,16 +1,23 @@
-<nav class="nav-bar p-4 bg-slate-800 text-white">
-    <ul class="ul-links flex flex-row justify-between">
-        <div class="nav-fix">
-            <li class="p-2 text-2xl"><a href="{% url 'index' %}">Home</a></li>
-        </div>
-        <div class="nav-right flex flex-row items-center justify-center gap-4">
-            {% if user.is_authenticated %}
-                <li class="p-2 text-2xl"><a href="{% url 'logout' %}">Logout</a></li>
-            {% else %}
-                <li class="p-2 text-2xl"><a href="{% url 'login' %}">Login</a></li>
-                <li class="p-2 text-2xl"><a href="{% url 'register' %}">Register</a></li>
-            {% endif %}
-        </div>
-        
-    </ul>
+<nav class="nav-bar p-4 bg-dark text-white">
+    <div class="container">
+        <ul class="d-flex flex-row justify-content-between align-items-center m-0 p-0" style="list-style-type: none;">
+            <div class="nav-fix">
+                <li class="p-2"><a href="{% url 'index' %}" class="text-decoration-none fs-4">
+                    <span style="color: var(--primary);">Tic</span>
+                    <span style="color: var(--secondary);">Tac</span>
+                    <span style="color: var(--accent);">Toe</span>
+                </a></li>
+            </div>
+            <div class="nav-right d-flex flex-row align-items-center gap-3">
+                {% if user.is_authenticated %}
+                <li class="p-2"><span class="text-light">Hi, {{ user.username }}!</span></li>
+                <li class="p-2"><a href="{% url 'game_list' %}" class="btn btn-outline-light btn-sm">My Games</a></li>
+                <li class="p-2"><a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm">Logout</a></li>
+                {% else %}
+                <li class="p-2"><a href="{% url 'login' %}" class="btn btn-outline-light btn-sm">Login</a></li>
+                <li class="p-2"><a href="{% url 'register' %}" class="btn btn-outline-danger btn-sm">Register</a></li>
+                {% endif %}
+            </div>
+        </ul>
+    </div>
 </nav>

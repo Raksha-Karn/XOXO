@@ -1,68 +1,217 @@
 {% extends 'ttt_game/base.html' %}
 {% block content %}
 <div class="container mt-5">
-    <h2>Tic Tac Toe Games</h2>
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card mb-4">
-                <div class="card-header">My Games</div>
+    <div class="row mb-4">
+        <div class="col-md-12 text-center">
+            <h1 class="display-4 fw-bold">
+                <span style="color: var(--primary);">Tic</span>
+                <span style="color: var(--secondary);">Tac</span>
+                <span style="color: var(--accent);">Toe</span>
+                <span style="color: var(--dark);"> Games</span>
+            </h1>
+            <p class="lead text-muted">Challenge friends or join an existing match!</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card border-0 h-100 shadow-sm">
+                <div class="card-header d-flex align-items-center">
+                    <i class="bi bi-controller me-2" style="font-size: 1.2rem;"></i>
+                    <span class="fs-5">My Games</span>
+                </div>
                 <div class="card-body">
                     <div id="my-games-list">
                         {% if my_games %}
-                        <ul class="list-group">
+                        <ul class="list-group list-group-flush">
                             {% for game in my_games %}
-                            <li class="list-group-item" data-game-id="{{ game.id }}">
-                                Game #{{ game.id }} -
-                                {% if game.status == 'waiting' %}
-                                Waiting for opponent
-                                {% elif game.status == 'active' %}
-                                Active - Current turn: {{ game.current_player }}
-                                {% else %}
-                                {{ game.get_status_display }}
-                                {% endif %}
-                                <br>
-                                <small>
-                                X: {% if game.player_x %}{{ game.player_x.username }}{% else %}Waiting...{% endif %} |
-                                O: {% if game.player_o %}{{ game.player_o.username }}{% else %}Waiting...{% endif %}
-                                </small>
-                                <a href="{% url 'game_detail' game_id=game.id %}" class="btn btn-sm btn-primary float-right">Play</a>
+                            <li class="list-group-item border-0 border-bottom py-3 position-relative" data-game-id="{{ game.id }}">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-1 fw-bold">Game #{{ game.id }}</h5>
+                                        <div class="d-flex align-items-center mb-2">
+                                            {% if game.status == 'waiting' %}
+                                                <span class="badge bg-warning text-dark me-2">Waiting</span>
+                                            {% elif game.status == 'active' %}
+                                                <span class="badge bg-success me-2">Active</span>
+                                                <small class="text-muted">Current turn: 
+                                                    <span class="{% if game.current_player == 'X' %}player-x{% else %}player-o{% endif %} fw-bold">
+                                                        {{ game.current_player }}
+                                                    </span>
+                                                </small>
+                                            {% elif game.status == 'completed' %}
+                                                <span class="badge bg-primary me-2">Completed</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary me-2">{{ game.get_status_display }}</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="d-flex gap-3">
+                                            <div class="player-badge">
+                                                <span class="player-x fw-bold">X:</span> 
+                                                {% if game.player_x %}
+                                                    <span class="player-name">{{ game.player_x.username }}</span>
+                                                {% else %}
+                                                    <span class="fst-italic text-muted">Waiting...</span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="player-badge">
+                                                <span class="player-o fw-bold">O:</span> 
+                                                {% if game.player_o %}
+                                                    <span class="player-name">{{ game.player_o.username }}</span>
+                                                {% else %}
+                                                    <span class="fst-italic text-muted">Waiting...</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <a href="{% url 'game_detail' game_id=game.id %}" class="btn btn-primary px-4">
+                                        Play
+                                    </a>
+                                </div>
                             </li>
                             {% endfor %}
                         </ul>
                         {% else %}
-                        <p>You have no active games.</p>
+                        <div class="text-center py-4">
+                            <div class="mb-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-controller text-muted" viewBox="0 0 16 16">
+                                    <path d="M11.5 6.027a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0zm-1.5 1.5a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1zm2.5-.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0zm-1.5 1.5a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1zm-6.5-3h1v1h1v1h-1v1h-1v-1h-1v-1h1v-1z"/>
+                                    <path d="M3.051 3.26a.5.5 0 0 1 .354-.613l1.932-.518a.5.5 0 0 1 .62.39c.655-.079 1.35-.117 2.043-.117.72 0 1.443.041 2.12.126a.5.5 0 0 1 .622-.399l1.932.518a.5.5 0 0 1 .306.729c.14.09.266.19.373.297.408.408.78 1.05 1.095 1.772.32.733.599 1.591.805 2.466.206.875.34 1.78.364 2.606.024.816-.059 1.602-.328 2.21a1.42 1.42 0 0 1-1.445.83c-.636-.067-1.115-.394-1.513-.773-.245-.232-.496-.526-.739-.808-.126-.148-.25-.292-.368-.423-.728-.804-1.597-1.527-3.224-1.527-1.627 0-2.496.723-3.224 1.527-.119.131-.242.275-.368.423-.243.282-.494.575-.739.808-.398.38-.877.706-1.513.773a1.42 1.42 0 0 1-1.445-.83c-.27-.608-.352-1.395-.329-2.21.024-.826.16-1.73.365-2.606.206-.875.486-1.733.805-2.466.315-.722.687-1.364 1.094-1.772a2.34 2.34 0 0 1 .382-.302.5.5 0 0 1 .301-.732z"/>
+                                </svg>
+                            </div>
+                            <p class="text-muted">You haven't started any games yet</p>
+                        </div>
                         {% endif %}
                     </div>
-                    <a href="{% url 'create_game' %}" class="btn btn-success mt-3">Create New Game</a>
+                    <div class="mt-4 text-center">
+                        <a href="{% url 'create_game' %}" class="btn btn-success px-4 py-2">
+                            <i class="bi bi-plus-circle me-2"></i> Create New Game
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">Available Games</div>
+        
+        <div class="col-lg-6">
+            <div class="card border-0 h-100 shadow-sm">
+                <div class="card-header d-flex align-items-center">
+                    <i class="bi bi-people me-2" style="font-size: 1.2rem;"></i>
+                    <span class="fs-5">Available Games</span>
+                </div>
                 <div class="card-body">
                     <div id="available-games-list">
                         {% if available_games %}
-                        <ul class="list-group">
+                        <ul class="list-group list-group-flush">
                             {% for game in available_games %}
-                            <li class="list-group-item" data-game-id="{{ game.id }}">
-                                Game #{{ game.id }} - Created by {{ game.player_x.username }}
-                                <a href="{% url 'join_game' game_id=game.id %}" class="btn btn-sm btn-primary float-right">Join</a>
+                            <li class="list-group-item border-0 border-bottom py-3" data-game-id="{{ game.id }}">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-1 fw-bold">Game #{{ game.id }}</h5>
+                                        <span class="badge bg-warning text-dark mb-2">Waiting for opponent</span>
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <span>Created by</span>
+                                            <span class="badge player-badge bg-light text-dark border">
+                                                <span class="player-x fw-bold me-1">X:</span>
+                                                {{ game.player_x.username }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <a href="{% url 'join_game' game_id=game.id %}" class="btn btn-primary px-4">
+                                        Join
+                                    </a>
+                                </div>
                             </li>
                             {% endfor %}
                         </ul>
                         {% else %}
-                        <p>No available games to join.</p>
+                        <div class="text-center py-4">
+                            <div class="mb-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-people text-muted" viewBox="0 0 16 16">
+                                    <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8Zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002a.274.274 0 0 1-.014.002H7.022ZM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816ZM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0Zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/>
+                                </svg>
+                            </div>
+                            <p class="text-muted">No available games to join</p>
+                        </div>
                         {% endif %}
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="mt-3">
-        <a href="{% url 'index' %}" class="btn btn-secondary">Back to Home</a>
+    
+    <div class="mt-5 text-center">
+        <a href="{% url 'index' %}" class="btn btn-outline-secondary px-4">
+            <i class="bi bi-house me-2"></i> Back to Home
+        </a>
     </div>
 </div>
+
+<style>
+    .player-x {
+        color: var(--primary);
+    }
+    
+    .player-o {
+        color: var(--secondary);
+    }
+    
+    .list-group-item {
+        transition: all 0.2s ease;
+    }
+    
+    .list-group-item:hover {
+        background-color: rgba(241, 250, 238, 0.5);
+    }
+    
+    .card-header {
+        background-color: var(--primary);
+        color: white;
+        padding: 1rem 1.5rem;
+    }
+    
+    .badge.bg-warning {
+        background-color: var(--warning) !important;
+    }
+    
+    .badge.bg-success {
+        background-color: var(--success) !important;
+    }
+    
+    .badge.bg-primary {
+        background-color: var(--secondary) !important;
+    }
+    
+    .player-badge {
+        padding: 0.25rem 0;
+        font-size: 0.9rem;
+    }
+    
+    .btn-primary {
+        background-color: var(--primary);
+        border-color: var(--primary);
+        transition: all 0.2s ease;
+    }
+    
+    .btn-primary:hover, .btn-primary:focus {
+        background-color: var(--primary-dark);
+        border-color: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-success {
+        background-color: var(--success);
+        border-color: var(--success);
+        transition: all 0.2s ease;
+    }
+    
+    .btn-success:hover, .btn-success:focus {
+        background-color: #218a7e;
+        border-color: #218a7e;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+</style>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -115,12 +264,31 @@
             
             const myGamesList = document.querySelector('#my-games-list ul');
             if (myGamesList && myGamesList.children.length === 0) {
-                document.getElementById('my-games-list').innerHTML = '<p>You have no active games.</p>';
+                document.getElementById('my-games-list').innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-controller text-muted" viewBox="0 0 16 16">
+                                <path d="M11.5 6.027a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0zm-1.5 1.5a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1zm2.5-.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0zm-1.5 1.5a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1zm-6.5-3h1v1h1v1h-1v1h-1v-1h-1v-1h1v-1z"/>
+                                <path d="M3.051 3.26a.5.5 0 0 1 .354-.613l1.932-.518a.5.5 0 0 1 .62.39c.655-.079 1.35-.117 2.043-.117.72 0 1.443.041 2.12.126a.5.5 0 0 1 .622-.399l1.932.518a.5.5 0 0 1 .306.729c.14.09.266.19.373.297.408.408.78 1.05 1.095 1.772.32.733.599 1.591.805 2.466.206.875.34 1.78.364 2.606.024.816-.059 1.602-.328 2.21a1.42 1.42 0 0 1-1.445.83c-.636-.067-1.115-.394-1.513-.773-.245-.232-.496-.526-.739-.808-.126-.148-.25-.292-.368-.423-.728-.804-1.597-1.527-3.224-1.527-1.627 0-2.496.723-3.224 1.527-.119.131-.242.275-.368.423-.243.282-.494.575-.739.808-.398.38-.877.706-1.513.773a1.42 1.42 0 0 1-1.445-.83c-.27-.608-.352-1.395-.329-2.21.024-.826.16-1.73.365-2.606.206-.875.486-1.733.805-2.466.315-.722.687-1.364 1.094-1.772a2.34 2.34 0 0 1 .382-.302.5.5 0 0 1 .301-.732z"/>
+                            </svg>
+                        </div>
+                        <p class="text-muted">You haven't started any games yet</p>
+                    </div>
+                `;
             }
             
             const availableGamesList = document.querySelector('#available-games-list ul');
             if (availableGamesList && availableGamesList.children.length === 0) {
-                document.getElementById('available-games-list').innerHTML = '<p>No available games to join.</p>';
+                document.getElementById('available-games-list').innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-people text-muted" viewBox="0 0 16 16">
+                                <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8Zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002a.274.274 0 0 1-.014.002H7.022ZM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816ZM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0Zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/>
+                            </svg>
+                        </div>
+                        <p class="text-muted">No available games to join</p>
+                    </div>
+                `;
             }
         }
         
@@ -128,30 +296,53 @@
             let myGamesList = document.querySelector('#my-games-list ul');
             
             if (!myGamesList) {
-                document.getElementById('my-games-list').innerHTML = '<ul class="list-group"></ul>';
+                document.getElementById('my-games-list').innerHTML = '<ul class="list-group list-group-flush"></ul>';
                 myGamesList = document.querySelector('#my-games-list ul');
             }
             
+            let statusBadge = '';
             let statusText = '';
+            
             if (game.status === 'waiting') {
+                statusBadge = '<span class="badge bg-warning text-dark me-2">Waiting</span>';
                 statusText = 'Waiting for opponent';
             } else if (game.status === 'active') {
-                statusText = `Active - Current turn: ${game.current_player}`;
+                statusBadge = '<span class="badge bg-success me-2">Active</span>';
+                statusText = `Current turn: <span class="${game.current_player === 'X' ? 'player-x' : 'player-o'} fw-bold">${game.current_player}</span>`;
+            } else if (game.status === 'completed') {
+                statusBadge = '<span class="badge bg-primary me-2">Completed</span>';
+                statusText = '';
             } else {
-                statusText = game.status;
+                statusBadge = `<span class="badge bg-secondary me-2">${game.status}</span>`;
+                statusText = '';
             }
             
             const li = document.createElement('li');
-            li.className = 'list-group-item';
+            li.className = 'list-group-item border-0 border-bottom py-3 position-relative';
             li.setAttribute('data-game-id', game.id);
             li.innerHTML = `
-                Game #${game.id} - ${statusText}
-                <br>
-                <small>
-                    X: ${game.player_x || 'Waiting...'} |
-                    O: ${game.player_o || 'Waiting...'}
-                </small>
-                <a href="/games/${game.id}/" class="btn btn-sm btn-primary float-right">Play</a>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1 fw-bold">Game #${game.id}</h5>
+                        <div class="d-flex align-items-center mb-2">
+                            ${statusBadge}
+                            <small class="text-muted">${statusText}</small>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <div class="player-badge">
+                                <span class="player-x fw-bold">X:</span> 
+                                ${game.player_x ? `<span class="player-name">${game.player_x}</span>` : '<span class="fst-italic text-muted">Waiting...</span>'}
+                            </div>
+                            <div class="player-badge">
+                                <span class="player-o fw-bold">O:</span> 
+                                ${game.player_o ? `<span class="player-name">${game.player_o}</span>` : '<span class="fst-italic text-muted">Waiting...</span>'}
+                            </div>
+                        </div>
+                    </div>
+                    <a href="/games/${game.id}/" class="btn btn-primary px-4">
+                        Play
+                    </a>
+                </div>
             `;
             
             myGamesList.appendChild(li);
@@ -161,16 +352,30 @@
             let availableGamesList = document.querySelector('#available-games-list ul');
             
             if (!availableGamesList) {
-                document.getElementById('available-games-list').innerHTML = '<ul class="list-group"></ul>';
+                document.getElementById('available-games-list').innerHTML = '<ul class="list-group list-group-flush"></ul>';
                 availableGamesList = document.querySelector('#available-games-list ul');
             }
             
             const li = document.createElement('li');
-            li.className = 'list-group-item';
+            li.className = 'list-group-item border-0 border-bottom py-3';
             li.setAttribute('data-game-id', game.id);
             li.innerHTML = `
-                Game #${game.id} - Created by ${game.player_x}
-                <a href="/games/${game.id}/join/" class="btn btn-sm btn-primary float-right">Join</a>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1 fw-bold">Game #${game.id}</h5>
+                        <span class="badge bg-warning text-dark mb-2">Waiting for opponent</span>
+                        <div class="d-flex gap-2 align-items-center">
+                            <span>Created by</span>
+                            <span class="badge player-badge bg-light text-dark border">
+                                <span class="player-x fw-bold me-1">X:</span>
+                                ${game.player_x}
+                            </span>
+                        </div>
+                    </div>
+                    <a href="/games/${game.id}/join/" class="btn btn-primary px-4">
+                        Join
+                    </a>
+                </div>
             `;
             
             availableGamesList.appendChild(li);
