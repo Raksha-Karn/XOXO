@@ -5,6 +5,8 @@ from django.contrib import messages
 from .models import Game
 from django.db import models
 from .forms import SignUpForm
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 import json
 
 
@@ -81,12 +83,66 @@ def game_list(request):
 @login_required
 def create_game(request):
     game = Game.objects.create(player_x=request.user)
+    
+    channel_layer = get_channel_layer()
+    game_data = {
+        'id': game.id,
+        'status': game.status,
+        'current_player': game.current_player,
+        'player_x': request.user.username,
+        'player_o': None,
+    }
+    
+    async_to_sync(channel_layer.group_send)(
+        'game_list',
+        {
+            'type': 'game_list_update',
+            'action': 'create',
+            'game': game_data
+        }
+    )
+    
     return redirect('game_detail', game_id=game.id)
 
 @login_required
 def join_game(request, game_id):
     game = get_object_or_404(Game, id=game_id)
     if game.join_game(request.user):
+        game_state = {
+            'board': game.board,
+            'current_player': game.current_player,
+            'status': game.status,
+            'winner': game.winner,
+            'player_x': game.player_x.username if game.player_x else None,
+            'player_o': request.user.username,
+        }
+        
+        channel_layer = get_channel_layer()
+        game_data = {
+            'id': game.id,
+            'status': game.status,
+            'current_player': game.current_player,
+            'player_x': game.player_x.username if game.player_x else None,
+            'player_o': request.user.username,
+        }
+        
+        async_to_sync(channel_layer.group_send)(
+            'game_list',
+            {
+                'type': 'game_list_update',
+                'action': 'update',
+                'game': game_data
+            }
+        )
+        
+        async_to_sync(channel_layer.group_send)(
+            f'game_{game_id}',
+            {
+                'type': 'game_update',
+                'state': game_state
+            }
+        )
+        
         return redirect('game_detail', game_id=game.id)
     else:
         return redirect('game_list')

@@ -1,0 +1,180 @@
+{% extends 'ttt_game/base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Tic Tac Toe Games</h2>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">My Games</div>
+                <div class="card-body">
+                    <div id="my-games-list">
+                        {% if my_games %}
+                        <ul class="list-group">
+                            {% for game in my_games %}
+                            <li class="list-group-item" data-game-id="{{ game.id }}">
+                                Game #{{ game.id }} -
+                                {% if game.status == 'waiting' %}
+                                Waiting for opponent
+                                {% elif game.status == 'active' %}
+                                Active - Current turn: {{ game.current_player }}
+                                {% else %}
+                                {{ game.get_status_display }}
+                                {% endif %}
+                                <br>
+                                <small>
+                                X: {% if game.player_x %}{{ game.player_x.username }}{% else %}Waiting...{% endif %} |
+                                O: {% if game.player_o %}{{ game.player_o.username }}{% else %}Waiting...{% endif %}
+                                </small>
+                                <a href="{% url 'game_detail' game_id=game.id %}" class="btn btn-sm btn-primary float-right">Play</a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p>You have no active games.</p>
+                        {% endif %}
+                    </div>
+                    <a href="{% url 'create_game' %}" class="btn btn-success mt-3">Create New Game</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Available Games</div>
+                <div class="card-body">
+                    <div id="available-games-list">
+                        {% if available_games %}
+                        <ul class="list-group">
+                            {% for game in available_games %}
+                            <li class="list-group-item" data-game-id="{{ game.id }}">
+                                Game #{{ game.id }} - Created by {{ game.player_x.username }}
+                                <a href="{% url 'join_game' game_id=game.id %}" class="btn btn-sm btn-primary float-right">Join</a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p>No available games to join.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="mt-3">
+        <a href="{% url 'index' %}" class="btn btn-secondary">Back to Home</a>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const gameListSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/game_list/'
+        );
+        
+        const currentUser = "{{ request.user.username }}";
+        
+        gameListSocket.onopen = function(e) {
+            console.log('Game list WebSocket connection established');
+        };
+        
+        gameListSocket.onmessage = function(e) {
+            console.log('Game list message received:', e.data);
+            const data = JSON.parse(e.data);
+            
+            if (data.type === 'game_list_update') {
+                handleGameUpdate(data.action, data.game);
+            }
+        };
+        
+        gameListSocket.onclose = function(e) {
+            console.error('Game list socket closed unexpectedly');
+        };
+        
+        function handleGameUpdate(action, game) {
+            removeGameFromList(game.id);
+            
+            if (game.status === 'waiting' || game.status === 'active') {
+                if (game.player_x === currentUser || game.player_o === currentUser) {
+                    addToMyGamesList(game);
+                } 
+                else if (game.status === 'waiting' && game.player_x !== currentUser) {
+                    addToAvailableGamesList(game);
+                }
+            }
+        }
+        
+        function removeGameFromList(gameId) {
+            const myGameItem = document.querySelector(`#my-games-list li[data-game-id="${gameId}"]`);
+            if (myGameItem) {
+                myGameItem.remove();
+            }
+            
+            const availableGameItem = document.querySelector(`#available-games-list li[data-game-id="${gameId}"]`);
+            if (availableGameItem) {
+                availableGameItem.remove();
+            }
+            
+            const myGamesList = document.querySelector('#my-games-list ul');
+            if (myGamesList && myGamesList.children.length === 0) {
+                document.getElementById('my-games-list').innerHTML = '<p>You have no active games.</p>';
+            }
+            
+            const availableGamesList = document.querySelector('#available-games-list ul');
+            if (availableGamesList && availableGamesList.children.length === 0) {
+                document.getElementById('available-games-list').innerHTML = '<p>No available games to join.</p>';
+            }
+        }
+        
+        function addToMyGamesList(game) {
+            let myGamesList = document.querySelector('#my-games-list ul');
+            
+            if (!myGamesList) {
+                document.getElementById('my-games-list').innerHTML = '<ul class="list-group"></ul>';
+                myGamesList = document.querySelector('#my-games-list ul');
+            }
+            
+            let statusText = '';
+            if (game.status === 'waiting') {
+                statusText = 'Waiting for opponent';
+            } else if (game.status === 'active') {
+                statusText = `Active - Current turn: ${game.current_player}`;
+            } else {
+                statusText = game.status;
+            }
+            
+            const li = document.createElement('li');
+            li.className = 'list-group-item';
+            li.setAttribute('data-game-id', game.id);
+            li.innerHTML = `
+                Game #${game.id} - ${statusText}
+                <br>
+                <small>
+                    X: ${game.player_x || 'Waiting...'} |
+                    O: ${game.player_o || 'Waiting...'}
+                </small>
+                <a href="/games/${game.id}/" class="btn btn-sm btn-primary float-right">Play</a>
+            `;
+            
+            myGamesList.appendChild(li);
+        }
+        
+        function addToAvailableGamesList(game) {
+            let availableGamesList = document.querySelector('#available-games-list ul');
+            
+            if (!availableGamesList) {
+                document.getElementById('available-games-list').innerHTML = '<ul class="list-group"></ul>';
+                availableGamesList = document.querySelector('#available-games-list ul');
+            }
+            
+            const li = document.createElement('li');
+            li.className = 'list-group-item';
+            li.setAttribute('data-game-id', game.id);
+            li.innerHTML = `
+                Game #${game.id} - Created by ${game.player_x}
+                <a href="/games/${game.id}/join/" class="btn btn-sm btn-primary float-right">Join</a>
+            `;
+            
+            availableGamesList.appendChild(li);
+        }
+    });
+</script>
+{% endblock %}

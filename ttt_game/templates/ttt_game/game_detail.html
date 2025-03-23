@@ -1,0 +1,169 @@
+{% extends "ttt_game/base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Tic Tac Toe Game</h2>
+    
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="game-info mb-4">
+                <div id="game-status" class="alert alert-info">
+                    {% if game.status == 'waiting' %}
+                        Waiting for another player to join...
+                    {% elif game.status == 'active' %}
+                        Game is active. Current turn: <span id="current-player">{{ game.current_player }}</span>
+                    {% elif game.status == 'completed' %}
+                        Game over! Winner: {{ game.winner }}
+                    {% elif game.status == 'draw' %}
+                        Game ended in a draw!
+                    {% endif %}
+                </div>
+                
+                <div class="players mb-3">
+                    <p>Player X: {% if game.player_x %}{{ game.player_x.username }}{% else %}Waiting...{% endif %}</p>
+                    <p>Player O: {% if game.player_o %}{{ game.player_o.username }}{% else %}Waiting...{% endif %}</p>
+                </div>
+            </div>
+            
+            <div class="game-board mb-4">
+                <table class="table-bordered mx-auto">
+                    <tbody>
+                        {% for row in board %}
+                        <tr>
+                            {% for cell in row %}
+                            <td class="game-cell" data-row="{{ forloop.parentloop.counter0 }}" data-col="{{ forloop.counter0 }}">
+                                {{ cell }}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="mt-3 text-center">
+                <a href="{% url 'game_list' %}" class="btn btn-secondary">Back to Games</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .game-board table {
+        border-collapse: collapse;
+    }
+    
+    .game-cell {
+        width: 100px;
+        height: 100px;
+        text-align: center;
+        vertical-align: middle;
+        font-size: 3em;
+        font-weight: bold;
+        cursor: pointer;
+        border: 2px solid #333;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const gameId = '{{ game_id }}';
+        const gameSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/game/' + gameId + '/'
+        );
+        
+        gameSocket.onopen = function(e) {
+            console.log('WebSocket connection established');
+        };
+        
+        gameSocket.onmessage = function(e) {
+            console.log('Message received:', e.data);
+            const data = JSON.parse(e.data);
+            
+            if (data.type === 'game_state' || data.type === 'game_update') {
+                updateGameBoard(data.state);
+            } else if (data.type === 'error') {
+                alert(data.message);
+            }
+        };
+        
+        gameSocket.onclose = function(e) {
+            console.error('Game socket closed unexpectedly');
+        };
+        
+        gameSocket.onerror = function(e) {
+            console.error('WebSocket error:', e);
+        };
+        
+        function updateGameBoard(gameState) {
+            if (!gameState) {
+                console.error('Invalid game state received');
+                return;
+            }
+            
+            console.log('Updating board with state:', gameState);
+            
+            try {
+                const board = JSON.parse(gameState.board);
+                
+                for (let row = 0; row < 3; row++) {
+                    for (let col = 0; col < 3; col++) {
+                        const cell = document.querySelector(`.game-cell[data-row="${row}"][data-col="${col}"]`);
+                        if (cell) {
+                            cell.textContent = board[row][col];
+                        } else {
+                            console.error(`Cell not found for row ${row}, col ${col}`);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error parsing board:', error);
+            }
+            
+            let statusText = '';
+            const statusElement = document.getElementById('game-status');
+            
+            if (gameState.status === 'waiting') {
+                statusText = 'Waiting for another player to join...';
+                statusElement.className = 'alert alert-info';
+            } else if (gameState.status === 'active') {
+                statusText = `Game is active. Current turn: ${gameState.current_player}`;
+                statusElement.className = 'alert alert-primary';
+            } else if (gameState.status === 'completed') {
+                statusText = `Game over! Winner: ${gameState.winner}`;
+                statusElement.className = 'alert alert-success';
+            } else if (gameState.status === 'draw') {
+                statusText = 'Game ended in a draw!';
+                statusElement.className = 'alert alert-warning';
+            }
+            
+            statusElement.innerHTML = statusText;
+            
+            const playersElement = document.querySelector('.players');
+            playersElement.innerHTML = `
+                <p>Player X: ${gameState.player_x || 'Waiting...'}</p>
+                <p>Player O: ${gameState.player_o || 'Waiting...'}</p>
+            `;
+        }
+        
+        document.querySelectorAll('.game-cell').forEach(cell => {
+            cell.addEventListener('click', function() {
+                console.log('Cell clicked');
+                const row = this.getAttribute('data-row');
+                const col = this.getAttribute('data-col');
+                
+                if (!this.textContent.trim()) {
+                    console.log(`Sending move: row=${row}, col=${col}`);
+                    gameSocket.send(JSON.stringify({
+                        'type': 'make_move',
+                        'row': parseInt(row),
+                        'col': parseInt(col)
+                    }));
+                } else {
+                    console.log('Cell not empty, ignoring click');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
