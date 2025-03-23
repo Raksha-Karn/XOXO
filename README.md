@@ -37,7 +37,7 @@ A real-time tic-tac-toe game built with Django and WebSockets that allows users 
 1.  Clone the repository:
     
     ```bash
-    git clone https://github.com/Raksha-Karn/tic_tac_toe.git
+    git clone https://github.com/Raksha-Karn/XOXO.git
     ```
     
 2.  Create and activate a virtual environment:
